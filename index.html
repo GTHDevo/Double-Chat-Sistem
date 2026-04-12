@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Live Chat Fusion 🔥</title>
+<title>Chat Hub 🔥</title>
 
 <style>
 body {
@@ -12,154 +12,169 @@ body {
   color: white;
 }
 
-/* HEADER */
-header {
+.container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  height: 100vh;
+}
+
+/* LEFT PANEL */
+.left {
+  width: 25%;
+  background: #151515;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.channel {
+  padding: 10px;
+  margin: 5px 0;
+  background: #222;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* RIGHT PANEL */
+.right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.top {
+  display: flex;
+  gap: 5px;
   padding: 10px;
   background: #1a1a1a;
 }
 
 input {
   flex: 1;
-  min-width: 200px;
-  padding: 10px;
+  padding: 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 button {
-  padding: 10px 15px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 6px;
   background: #ff0055;
   color: white;
+  cursor: pointer;
 }
 
 /* CHAT AREA */
-#container {
+.chats {
+  flex: 1;
   display: flex;
-  height: calc(100vh - 60px);
-}
-
-/* LAYOUT MODES */
-.side {
-  flex-direction: row;
-}
-
-.stacked {
   flex-direction: column;
 }
 
-.chatBox {
-  flex: 1;
-  border: 1px solid #222;
-}
-
 iframe {
-  width: 100%;
-  height: 100%;
+  flex: 1;
   border: none;
-}
-
-/* THEMES */
-.dark { background: #0f0f0f; }
-.neon { background: black; }
-.neon button { background: #00ffcc; color: black; }
-.light { background: #f5f5f5; color: black; }
-.light header { background: #ddd; }
-
-/* MOBILE FIX */
-@media (max-width: 768px) {
-  #container {
-    flex-direction: column;
-  }
 }
 </style>
 </head>
 
-<body class="dark">
+<body>
 
-<header>
-  <input id="yt" placeholder="YouTube link / video / channel / live">
-  <input id="kick" placeholder="Kick popout link">
+<div class="container">
 
-  <button onclick="start()">Başlat</button>
-
-  <button onclick="setLayout('side')">Yan Yana</button>
-  <button onclick="setLayout('stacked')">Alt Alta</button>
-
-  <button onclick="setTheme('dark')">Dark</button>
-  <button onclick="setTheme('neon')">Neon</button>
-  <button onclick="setTheme('light')">Light</button>
-</header>
-
-<div id="container" class="side">
-
-  <div class="chatBox">
-    <iframe id="ytFrame"></iframe>
+  <!-- LEFT -->
+  <div class="left">
+    <h3>🔥 Kanallar</h3>
+    <div id="list"></div>
   </div>
 
-  <div class="chatBox">
-    <iframe id="kickFrame"></iframe>
+  <!-- RIGHT -->
+  <div class="right">
+
+    <div class="top">
+      <input id="yt" placeholder="YouTube @kanal veya video link">
+      <input id="kick" placeholder="Kick kanal adı">
+      <button onclick="start()">Aç</button>
+    </div>
+
+    <div class="chats">
+      <iframe id="ytFrame"></iframe>
+      <iframe id="kickFrame"></iframe>
+    </div>
+
   </div>
 
 </div>
 
 <script>
 
-function start() {
-  let ytInput = document.getElementById("yt").value.trim();
-  let kick = document.getElementById("kick").value.trim();
-
-  if (!ytInput || !kick) {
-    alert("⚠️ İki linki de girmelisin!");
-    return;
+/* 🔥 KANAL LİSTESİ (BURAYI SONRA SEN DEĞİŞTİRECEKSİN) */
+const channels = [
+  {
+    name: "MervanT",
+    yt: "Xp5KwxKl7cU",
+    kick: "mervant0"
   }
+];
 
-  // YouTube video ID çıkarma
-  let videoId = extractYouTubeID(ytInput);
+/* LEFT PANEL */
+const list = document.getElementById("list");
 
-  if (!videoId) {
-    alert("❌ YouTube linki çözülemedi!");
-    return;
-  }
+channels.forEach(c => {
+  let div = document.createElement("div");
+  div.className = "channel";
+  div.innerText = c.name;
 
-  let ytChat = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}`;
+  div.onclick = () => {
+    openChannel(c);
+  };
+
+  list.appendChild(div);
+});
+
+/* KANAL AÇ */
+function openChannel(c) {
+
+  let ytChat = `https://www.youtube.com/live_chat?v=${c.yt}&embed_domain=${window.location.hostname}`;
+  let kickChat = `https://kick.com/popout/${c.kick}/chat`;
 
   document.getElementById("ytFrame").src = ytChat;
-  document.getElementById("kickFrame").src = kick;
+  document.getElementById("kickFrame").src = kickChat;
 }
 
+/* MANUEL INPUT */
+function start() {
 
-// YouTube ID extractor
-function extractYouTubeID(url) {
+  let yt = document.getElementById("yt").value.trim();
+  let kick = document.getElementById("kick").value.trim();
 
-  // watch?v=
-  let match = url.match(/v=([a-zA-Z0-9_-]{11})/);
-  if (match) return match[1];
+  if (!yt || !kick) {
+    alert("⚠️ İkisini de gir!");
+    return;
+  }
 
-  // youtu.be/
-  match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
-  if (match) return match[1];
+  let ytID = extractID(yt);
 
-  // live link
-  match = url.match(/live\/([a-zA-Z0-9_-]{11})/);
-  if (match) return match[1];
+  if (!ytID) {
+    alert("❌ YouTube ID bulunamadı!");
+    return;
+  }
+
+  document.getElementById("ytFrame").src =
+    `https://www.youtube.com/live_chat?v=${ytID}&embed_domain=${window.location.hostname}`;
+
+  document.getElementById("kickFrame").src =
+    `https://kick.com/popout/${kick}/chat`;
+}
+
+/* YOUTUBE ID */
+function extractID(url) {
+  let m = url.match(/v=([a-zA-Z0-9_-]{11})/);
+  if (m) return m[1];
+
+  m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (m) return m[1];
 
   return null;
-}
-
-// Layout
-function setLayout(type) {
-  document.getElementById("container").className = type;
-}
-
-// Theme
-function setTheme(theme) {
-  document.body.className = theme;
 }
 
 </script>
