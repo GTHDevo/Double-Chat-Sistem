@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Chat Fusion 🔥</title>
+<title>Live Chat Fusion 🔥</title>
 
 <style>
 body {
@@ -12,37 +12,50 @@ body {
   color: white;
 }
 
+/* HEADER */
 header {
-  padding: 15px;
-  background: #1a1a1a;
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  padding: 10px;
+  background: #1a1a1a;
 }
 
 input {
   flex: 1;
+  min-width: 200px;
   padding: 10px;
-  border-radius: 8px;
   border: none;
+  border-radius: 8px;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 10px 15px;
   border: none;
   border-radius: 8px;
+  cursor: pointer;
   background: #ff0055;
   color: white;
-  cursor: pointer;
 }
 
-.container {
+/* CHAT AREA */
+#container {
   display: flex;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 60px);
 }
 
-.chat {
+/* LAYOUT MODES */
+.side {
+  flex-direction: row;
+}
+
+.stacked {
+  flex-direction: column;
+}
+
+.chatBox {
   flex: 1;
-  border-left: 1px solid #222;
+  border: 1px solid #222;
 }
 
 iframe {
@@ -51,48 +64,104 @@ iframe {
   border: none;
 }
 
-/* Tema seçenekleri */
+/* THEMES */
 .dark { background: #0f0f0f; }
 .neon { background: black; }
 .neon button { background: #00ffcc; color: black; }
 .light { background: #f5f5f5; color: black; }
 .light header { background: #ddd; }
+
+/* MOBILE FIX */
+@media (max-width: 768px) {
+  #container {
+    flex-direction: column;
+  }
+}
 </style>
 </head>
 
 <body class="dark">
 
 <header>
-  <input id="yt" placeholder="YouTube popout link">
+  <input id="yt" placeholder="YouTube link / video / channel / live">
   <input id="kick" placeholder="Kick popout link">
+
   <button onclick="start()">Başlat</button>
+
+  <button onclick="setLayout('side')">Yan Yana</button>
+  <button onclick="setLayout('stacked')">Alt Alta</button>
+
   <button onclick="setTheme('dark')">Dark</button>
   <button onclick="setTheme('neon')">Neon</button>
   <button onclick="setTheme('light')">Light</button>
 </header>
 
-<div class="container">
-  <div class="chat"><iframe id="ytFrame"></iframe></div>
-  <div class="chat"><iframe id="kickFrame"></iframe></div>
+<div id="container" class="side">
+
+  <div class="chatBox">
+    <iframe id="ytFrame"></iframe>
+  </div>
+
+  <div class="chatBox">
+    <iframe id="kickFrame"></iframe>
+  </div>
+
 </div>
 
 <script>
-function start() {
-  let yt = document.getElementById("yt").value;
-  let kick = document.getElementById("kick").value;
 
-  if (!yt || !kick) {
-    alert("⚠️ İki linki de girmeden başlatamazsın!");
+function start() {
+  let ytInput = document.getElementById("yt").value.trim();
+  let kick = document.getElementById("kick").value.trim();
+
+  if (!ytInput || !kick) {
+    alert("⚠️ İki linki de girmelisin!");
     return;
   }
 
-  document.getElementById("ytFrame").src = yt;
+  // YouTube video ID çıkarma
+  let videoId = extractYouTubeID(ytInput);
+
+  if (!videoId) {
+    alert("❌ YouTube linki çözülemedi!");
+    return;
+  }
+
+  let ytChat = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}`;
+
+  document.getElementById("ytFrame").src = ytChat;
   document.getElementById("kickFrame").src = kick;
 }
 
+
+// YouTube ID extractor
+function extractYouTubeID(url) {
+
+  // watch?v=
+  let match = url.match(/v=([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // youtu.be/
+  match = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  // live link
+  match = url.match(/live\/([a-zA-Z0-9_-]{11})/);
+  if (match) return match[1];
+
+  return null;
+}
+
+// Layout
+function setLayout(type) {
+  document.getElementById("container").className = type;
+}
+
+// Theme
 function setTheme(theme) {
   document.body.className = theme;
 }
+
 </script>
 
 </body>
