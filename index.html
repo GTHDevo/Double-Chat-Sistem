@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>2 Chat Hub 🔥</title>
-<title>By-Melih Gediz</title>
+
 <style>
 body {
   margin: 0;
@@ -17,7 +17,7 @@ body {
   height: 100vh;
 }
 
-/* LEFT PANEL */
+/* LEFT */
 .left {
   width: 25%;
   background: #151515;
@@ -33,7 +33,7 @@ body {
   cursor: pointer;
 }
 
-/* RIGHT PANEL */
+/* RIGHT */
 .right {
   flex: 1;
   display: flex;
@@ -63,15 +63,30 @@ button {
   cursor: pointer;
 }
 
-/* CHAT AREA */
+/* VIDEO */
+.video {
+  height: 40%;
+}
+
+.video iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* CHATS */
 .chats {
   flex: 1;
   display: flex;
-  flex-direction: column;
+}
+
+.chat {
+  flex: 1;
 }
 
 iframe {
-  flex: 1;
+  width: 100%;
+  height: 100%;
   border: none;
 }
 </style>
@@ -91,14 +106,20 @@ iframe {
   <div class="right">
 
     <div class="top">
-      <input id="yt" placeholder="YouTube @kanal veya video link">
+      <input id="yt" placeholder="YouTube link">
       <input id="kick" placeholder="Kick kanal adı">
       <button onclick="start()">Aç</button>
     </div>
 
+    <!-- 🎥 VIDEO -->
+    <div class="video">
+      <iframe id="videoFrame"></iframe>
+    </div>
+
+    <!-- 💬 CHATS -->
     <div class="chats">
-      <iframe id="ytFrame"></iframe>
-      <iframe id="kickFrame"></iframe>
+      <div class="chat"><iframe id="kickFrame"></iframe></div>
+      <div class="chat"><iframe id="ytFrame"></iframe></div>
     </div>
 
   </div>
@@ -107,7 +128,7 @@ iframe {
 
 <script>
 
-/* 🔥 KANAL LİSTESİ (BURAYI SONRA SEN DEĞİŞTİRECEKSİN) */
+/* 🔥 KANAL */
 const channels = [
   {
     name: "MervanT",
@@ -116,7 +137,6 @@ const channels = [
   }
 ];
 
-/* LEFT PANEL */
 const list = document.getElementById("list");
 
 channels.forEach(c => {
@@ -124,49 +144,59 @@ channels.forEach(c => {
   div.className = "channel";
   div.innerText = c.name;
 
-  div.onclick = () => {
-    openChannel(c);
-  };
+  div.onclick = () => openChannel(c);
 
   list.appendChild(div);
 });
 
-/* KANAL AÇ */
-function openChannel(c) {
-
-  let ytChat = `https://www.youtube.com/live_chat?v=${c.yt}&embed_domain=${window.location.hostname}`;
-  let kickChat = `https://kick.com/popout/${c.kick}/chat`;
-
-  document.getElementById("ytFrame").src = ytChat;
-  document.getElementById("kickFrame").src = kickChat;
+/* DOMAIN FIX 🔥 */
+function getDomain() {
+  if (location.hostname === "" || location.hostname === "127.0.0.1") {
+    return "youtube.com"; // FIX
+  }
+  return location.hostname;
 }
 
-/* MANUEL INPUT */
+/* OPEN CHANNEL */
+function openChannel(c) {
+
+  // 🎥 VIDEO
+  document.getElementById("videoFrame").src =
+    `https://www.youtube.com/embed/${c.yt}`;
+
+  // 💬 YT CHAT (FIXED)
+  document.getElementById("ytFrame").src =
+    `https://www.youtube.com/live_chat?v=${c.yt}&embed_domain=${getDomain()}`;
+
+  // 🎮 KICK CHAT
+  document.getElementById("kickFrame").src =
+    `https://kick.com/popout/${c.kick}/chat`;
+}
+
+/* INPUT */
 function start() {
 
   let yt = document.getElementById("yt").value.trim();
   let kick = document.getElementById("kick").value.trim();
 
-  if (!yt || !kick) {
-    alert("⚠️ İkisini de gir!");
-    return;
-  }
-
   let ytID = extractID(yt);
 
   if (!ytID) {
-    alert("❌ YouTube ID bulunamadı!");
+    alert("❌ YT ID bulunamadı!");
     return;
   }
 
+  document.getElementById("videoFrame").src =
+    `https://www.youtube.com/embed/${ytID}`;
+
   document.getElementById("ytFrame").src =
-    `https://www.youtube.com/live_chat?v=${ytID}&embed_domain=${window.location.hostname}`;
+    `https://www.youtube.com/live_chat?v=${ytID}&embed_domain=${getDomain()}`;
 
   document.getElementById("kickFrame").src =
     `https://kick.com/popout/${kick}/chat`;
 }
 
-/* YOUTUBE ID */
+/* YT ID */
 function extractID(url) {
   let m = url.match(/v=([a-zA-Z0-9_-]{11})/);
   if (m) return m[1];
